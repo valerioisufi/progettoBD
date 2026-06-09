@@ -1,7 +1,5 @@
 package io.github.valerioisufi.cli.io;
 
-import io.github.valerioisufi.model.dto.LezioneDto;
-
 import java.util.List;
 
 public class OutputPrinter {

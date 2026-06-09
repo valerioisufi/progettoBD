@@ -1,6 +1,5 @@
 package io.github.valerioisufi.model.dao;
 
-import io.github.valerioisufi.exception.ConfigException;
 import io.github.valerioisufi.utils.ConfigurationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

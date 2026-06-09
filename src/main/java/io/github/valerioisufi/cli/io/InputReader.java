@@ -1,7 +1,6 @@
 package io.github.valerioisufi.cli.io;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
