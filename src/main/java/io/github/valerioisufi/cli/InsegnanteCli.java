@@ -103,11 +103,12 @@ public class InsegnanteCli implements CliView {
                     } else {
                         printer.printSuccess("Assenza registrata per " + allievo.nome() + " " + allievo.cognome());
                     }
-                    reader.waitForEnter();
+
                 } catch (RequestException e){
                     printer.printError("Errore durante la registrazione dell'assenza: " + e.getMessage());
                 }
 
+                reader.waitForEnter();
 
             }
 
@@ -155,7 +156,7 @@ public class InsegnanteCli implements CliView {
             List<AllievoDto> iscritti = controller.elencoIscrittiCorso(nomeLivello, codiceCorso);
 
             if (iscritti.isEmpty()) {
-                printer.printInfo("Nessuna lezione in agenda per questa settimana.");
+                printer.printInfo("Nessun iscritto a questo corso.");
             } else {
                 String[] headers = {"ID", "Nome", "Cognome", "Telefono", "Email"};
                 String[][] data = iscritti.stream()
