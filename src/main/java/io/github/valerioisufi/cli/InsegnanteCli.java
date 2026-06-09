@@ -59,7 +59,13 @@ public class InsegnanteCli implements CliView {
 
             List<String> data = lezioni.stream()
                     .map(l ->
-                            l.data() + " " + l.oraInizio() + "-" + l.oraFine() + l.nomeLivelloCorso() + " " + l.codiceCorso()
+                            String.format("%-10s | %s - %s | %s %d",
+                                    l.data(),
+                                    l.oraInizio(),
+                                    l.oraFine(),
+                                    l.nomeLivelloCorso(),
+                                    l.codiceCorso()
+                            )
                     ).toList();
 
             printer.printMenu("Lezioni programmate", data);
@@ -90,9 +96,11 @@ public class InsegnanteCli implements CliView {
                 AllievoDto allievo = iscritti.get(sceltaAllievo - 1);
 
                 try {
-                    controller.registraAssenza(allievo.id(), lezione.codice());
-
-                    printer.printSuccess("Assenza registrata per " + allievo.nome() + " " + allievo.cognome());
+                    if(controller.registraAssenza(allievo.id(), lezione.codice())) {
+                        printer.printInfo(allievo.nome() + " " + allievo.cognome() + " risulta già registrato come assente.");
+                    } else {
+                        printer.printSuccess("Assenza registrata per " + allievo.nome() + " " + allievo.cognome());
+                    }
                     reader.waitForEnter();
                 } catch (RequestException e){
                     printer.printError("Errore durante la registrazione dell'assenza: " + e.getMessage());

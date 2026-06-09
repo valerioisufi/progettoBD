@@ -61,12 +61,13 @@ public class InsegnanteController {
         }
     }
 
-    public void registraAssenza(int idAllievo, int codiceLezione) throws RequestException {
+    public boolean registraAssenza(int idAllievo, int codiceLezione) throws RequestException {
         Assenza assenza = new Assenza(idAllievo, codiceLezione);
         RegistraAssenzaProcedureDao dao = new RegistraAssenzaProcedureDao();
         
         try {
-            dao.registraAssenza(getIdInsegnanteCorrente(), assenza);
+            return dao.registraAssenza(getIdInsegnanteCorrente(), assenza);
+
         } catch (DaoException e) {
             throw new RequestException(e.getMessage());
         }

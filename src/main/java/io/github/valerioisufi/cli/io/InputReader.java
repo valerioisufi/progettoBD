@@ -99,7 +99,7 @@ public class InputReader {
             return LocalDate.parse(input, DateTimeFormatter.ofPattern(pattern));
 
         } catch (DateTimeParseException e) {
-            System.out.println("Formato non valido. Please use " + pattern + ".\n");
+            System.out.println("Formato non valido. Utilizza il formato: " + pattern + ".\n");
             return readDate(prompt, pattern);
         }
 
@@ -112,7 +112,7 @@ public class InputReader {
         try {
             return LocalTime.parse(input, DateTimeFormatter.ofPattern(pattern));
         } catch (DateTimeParseException e) {
-            System.out.println("Formato non valido. Please use " + pattern + ".\n");
+            System.out.println("Formato non valido. Utilizza il formato: " + pattern + ".\n");
             return readTime(prompt, pattern);
         }
     }

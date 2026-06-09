@@ -127,6 +127,7 @@ public class SegreteriaCli implements CliView {
                 printer.printError("Errore durante la creazione del corso: " + e.getMessage());
                 modificaInformazioniCorso(corso);
             }
+
         } else if (scelta == 4) {
             return;
         }
@@ -176,12 +177,11 @@ public class SegreteriaCli implements CliView {
                 printer.printTable(headers, data);
             }
 
-            reader.waitForEnter();
-
         } catch (RequestException e) {
             printer.printError("Generazione del report fallita: " + e.getMessage());
         }
 
+        reader.waitForEnter();
 
     }
 
@@ -202,11 +202,11 @@ public class SegreteriaCli implements CliView {
                             c.esameObbligatorio() ? "Sì" : "No"
                     }).toArray(String[][]::new);
 
-            reader.waitForEnter();
-
         } catch (RequestException e) {
             printer.printError("Errore durante il recupero della lista dei corsi: " + e.getMessage());
         }
+
+        reader.waitForEnter();
 
     }
 
@@ -245,12 +245,12 @@ public class SegreteriaCli implements CliView {
 
                 printer.printTable(headers, data);
             }
-            reader.waitForEnter();
 
         } catch (RequestException e) {
             printer.printError("Errore durante il recupero della scheda dell'allievo: " + e.getMessage());
         }
 
+        reader.waitForEnter();
     }
 
     private String[] itemLezione(LezioneDto l, SimpleDateFormat dateFormat, SimpleDateFormat timeFormat, boolean printInsegnante) {

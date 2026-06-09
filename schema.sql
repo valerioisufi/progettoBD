@@ -339,9 +339,11 @@ DROP PROCEDURE IF EXISTS `language_school`.`registra_assenza` $$
 CREATE PROCEDURE `language_school`.`registra_assenza`(
     in var_id_insegnante INT,
     in var_id_allievo INT,
-    in var_codice_lezione INT)
+    in var_codice_lezione INT,
+    out var_gia_presente TINYINT)
 BEGIN
     declare var_authorized INT;
+    declare var_assenza_esiste INT;
 
     declare exit handler for SQLEXCEPTION
     begin
@@ -360,8 +362,19 @@ BEGIN
 
     set transaction isolation level repeatable read;
     start transaction;
-        insert into `language_school`.`Assenza` (`IdAllievo`, `CodiceLezione`)
-            values (var_id_allievo, var_codice_lezione);
+        select count(*) into var_assenza_esiste
+        from `language_school`.`Assenza`
+        where `IdAllievo` = var_id_allievo and `CodiceLezione` = var_codice_lezione;
+
+        if var_assenza_esiste > 0 then
+            -- l'assenza è già stata registrata
+            set var_gia_presente = 1;
+        else
+            insert into `language_school`.`Assenza` (`IdAllievo`, `CodiceLezione`)
+                values (var_id_allievo, var_codice_lezione);
+
+            set var_gia_presente = 0;
+        end if;
     commit;
 END$$
 
