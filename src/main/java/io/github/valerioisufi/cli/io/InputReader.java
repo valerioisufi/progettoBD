@@ -3,10 +3,9 @@ package io.github.valerioisufi.cli.io;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
-import java.util.List;
 import java.util.Scanner;
 import java.util.function.UnaryOperator;
 
@@ -58,6 +57,10 @@ public class InputReader {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                continue;
+            }
+
             try {
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
@@ -77,20 +80,6 @@ public class InputReader {
         }
     }
 
-    public double readDouble(String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            String input = scanner.nextLine().trim();
-            // Allow both comma and dot for decimals
-            input = input.replace(",", ".");
-            try {
-                return Double.parseDouble(input);
-            } catch (NumberFormatException e) {
-                printer.printError("Input non valido. Inserisci un numero decimale valido.");
-            }
-        }
-    }
-
     public LocalDate readDate(String prompt, String pattern) {
         System.out.print(prompt);
         String input = scanner.nextLine().trim();
@@ -103,6 +92,19 @@ public class InputReader {
             return readDate(prompt, pattern);
         }
 
+    }
+
+    public YearMonth readYearMonth(String prompt, String pattern) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+
+        try {
+            return YearMonth.parse(input, DateTimeFormatter.ofPattern(pattern));
+
+        } catch (DateTimeParseException e) {
+            System.out.println("Formato non valido. Utilizza il formato: " + pattern + ".\n");
+            return readYearMonth(prompt, pattern);
+        }
     }
 
     public LocalTime readTime(String prompt, String pattern) {

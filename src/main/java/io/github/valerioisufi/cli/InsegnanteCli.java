@@ -54,6 +54,7 @@ public class InsegnanteCli implements CliView {
 
             if (lezioni.isEmpty()) {
                 printer.printInfo("Non ci sono lezioni in agenda questa settimana.");
+                reader.waitForEnter();
                 return;
             }
 
@@ -77,6 +78,7 @@ public class InsegnanteCli implements CliView {
             List<AllievoDto> iscritti = controller.elencoIscrittiCorso(lezione.nomeLivelloCorso(), lezione.codiceCorso());
             if (iscritti.isEmpty()) {
                 printer.printInfo("Non ci sono iscritti per questa lezione.");
+                reader.waitForEnter();
                 return;
             }
 
@@ -120,23 +122,28 @@ public class InsegnanteCli implements CliView {
         try {
             List<LezioneDto> lezioni = controller.reportAgendaSettimanale(dataInizio);
 
-            String[] headers = {"Codice", "Data", "Ora inizio", "Ora fine", "Corso"};
-            String[][] data = lezioni.stream()
-                    .map(l -> new String[]{
-                            String.valueOf(l.codice()),
-                            l.data().toString(),
-                            l.oraInizio().toString(),
-                            l.oraFine().toString(),
-                            l.nomeLivelloCorso() + " " + l.codiceCorso()
-                    })
-                    .toArray(String[][]::new);
+            if (lezioni.isEmpty()) {
+                printer.printInfo("Nessuna lezione in agenda per questa settimana.");
+            } else {
+                String[] headers = {"Codice", "Data", "Ora inizio", "Ora fine", "Corso"};
+                String[][] data = lezioni.stream()
+                        .map(l -> new String[]{
+                                String.valueOf(l.codice()),
+                                l.data().toString(),
+                                l.oraInizio().toString(),
+                                l.oraFine().toString(),
+                                l.nomeLivelloCorso() + " " + l.codiceCorso()
+                        })
+                        .toArray(String[][]::new);
 
-            printer.printTable(headers, data);
-            reader.waitForEnter();
+                printer.printTable(headers, data);
+            }
 
         } catch (RequestException e){
             printer.printError("Errore durante il recupero dell'agenda settimanale: " + e.getMessage());
         }
+
+        reader.waitForEnter();
     }
 
     private void elencoIscrittiCorso() {
@@ -147,23 +154,28 @@ public class InsegnanteCli implements CliView {
         try {
             List<AllievoDto> iscritti = controller.elencoIscrittiCorso(nomeLivello, codiceCorso);
 
-            String[] headers = {"ID", "Nome", "Cognome", "Telefono", "Email"};
-            String[][] data = iscritti.stream()
-                    .map(a -> new String[]{
-                            String.valueOf(a.id()),
-                            a.nome(),
-                            a.cognome(),
-                            a.telefono(),
-                            a.email()
-                    })
-                    .toArray(String[][]::new);
+            if (iscritti.isEmpty()) {
+                printer.printInfo("Nessuna lezione in agenda per questa settimana.");
+            } else {
+                String[] headers = {"ID", "Nome", "Cognome", "Telefono", "Email"};
+                String[][] data = iscritti.stream()
+                        .map(a -> new String[]{
+                                String.valueOf(a.id()),
+                                a.nome(),
+                                a.cognome(),
+                                (a.telefono() != null ? a.telefono() : "N/D"),
+                                (a.email() != null ? a.email() : "N/D")
+                        })
+                        .toArray(String[][]::new);
 
-            printer.printTable(headers, data);
-            reader.waitForEnter();
+                printer.printTable(headers, data);
+            }
 
         } catch (RequestException e){
             printer.printError("Errore durante il recupero dell'elenco degli iscritti al corso: " + e.getMessage());
         }
+
+        reader.waitForEnter();
 
     }
 

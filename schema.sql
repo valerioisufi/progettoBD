@@ -153,7 +153,7 @@ BEGIN
 
         -- Inserimento del corso
         insert into `language_school`.`Corso` (`NomeLivello`, `Codice`, `DataAttivazione`, `NumAllievi`)
-            values (var_nomeLivelloCorso, var_codiceCorso + 1, CURDATE(), 0);
+            values (var_nomeLivelloCorso, var_codiceCorso, CURRENT_DATE(), 0);
 
         -- Inserimento delle lezioni
         insert into `language_school`.`Lezione` (`Data`, `OraInizio`, `OraFine`, `IdInsegnante`, `NomeLivelloCorso`, `CodiceCorso`)
@@ -223,6 +223,10 @@ BEGIN
             join `language_school`.`Insegnante` on `Insegnante`.`Id` = `Lezione`.`IdInsegnante`
         where MONTH(`Lezione`.`Data`) = var_mese
             and YEAR(`Lezione`.`Data`) = var_anno
+            and (
+                `Lezione`.`Data` < CURRENT_DATE()
+                or (`Lezione`.`Data` = CURRENT_DATE() and `Lezione`.`OraFine` < CURRENT_TIME())
+            )
         order by
             `Insegnante`.`Cognome`,
             `Insegnante`.`Nome`,
@@ -726,7 +730,7 @@ VALUES (1, 1);
 
 -- Utenti per il Login
 INSERT INTO `language_school`.`Utente` (`Username`, `Password`, `Ruolo`, `IdInsegnante`)
-VALUES ('segreteria_roma', MD5('admin123'), 'segreteria', NULL);
+VALUES ('segreteria', MD5('admin123'), 'segreteria', NULL);
 
 INSERT INTO `language_school`.`Utente` (`Username`, `Password`, `Ruolo`, `IdInsegnante`)
 VALUES ('j.smith', MD5('password'), 'insegnante', 1);

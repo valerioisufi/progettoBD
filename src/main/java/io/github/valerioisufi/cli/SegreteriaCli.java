@@ -7,9 +7,9 @@ import io.github.valerioisufi.exception.RequestException;
 import io.github.valerioisufi.model.dto.*;
 import io.github.valerioisufi.utils.ValidationUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +62,7 @@ public class SegreteriaCli implements CliView {
 
         boolean done = false;
         while (!done) {
+            printer.printTitle("Informazioni lezione (" + (lezioni.size() + 1) + ")");
             LocalDate dataLezione = reader.readDate("Data (yyyy-MM-dd): ", "yyyy-MM-dd");
             LocalTime oraInizio = reader.readTime("Ora Inizio (HH:mm): ", "HH:mm");
             LocalTime oraFine = reader.readTime("Ora Fine (HH:mm): ", "HH:mm");
@@ -79,6 +80,9 @@ public class SegreteriaCli implements CliView {
 
         try {
             controller.attivaCorso(corso);
+
+            printer.printSuccess("Corso attivato con successo");
+            reader.waitForEnter();
         } catch (RequestException e) {
             printer.printError("Errore durante la creazione del corso: " + e.getMessage());
             modificaInformazioniCorso(corso);
@@ -123,6 +127,9 @@ public class SegreteriaCli implements CliView {
         } else if (scelta == 3) {
             try {
                 controller.attivaCorso(corso);
+
+                printer.printSuccess("Corso attivato con successo");
+                reader.waitForEnter();
             } catch (RequestException e) {
                 printer.printError("Errore durante la creazione del corso: " + e.getMessage());
                 modificaInformazioniCorso(corso);
@@ -137,11 +144,14 @@ public class SegreteriaCli implements CliView {
     private void iscriviAllievo() {
         String nome = reader.readStringAndValidate("Nome: ", input -> ValidationUtils.validateRequired(input, "nome", 45));
         String cognome = reader.readStringAndValidate("Cognome: ", input -> ValidationUtils.validateRequired(input, "cognome", 45));
-        String telefono = reader.readStringAndValidate("Telefono: ", ValidationUtils::validatePhone);
-        String email = reader.readStringAndValidate("Email: ", ValidationUtils::validateEmail);
+        String telefonoInput = reader.readStringAndValidate("Telefono: ", ValidationUtils::validatePhone);
+        String telefono = telefonoInput.isEmpty() ? null : telefonoInput;
+
+        String emailInput = reader.readStringAndValidate("Email: ", ValidationUtils::validateEmail);
+        String email = emailInput.isEmpty() ? null : emailInput;
 
         String nomeLivelloCorso = reader.readStringAndValidate("Nome livello corso: ", input -> ValidationUtils.validateRequired(input, "nome", 45));
-        int codiceCorso = reader.readInt("Codice corso");
+        int codiceCorso = reader.readInt("Codice corso: ");
 
         IscriviAllievoDto iscriviAllievoDto = new IscriviAllievoDto(nome, cognome, telefono, email, nomeLivelloCorso, codiceCorso);
 
@@ -153,27 +163,26 @@ public class SegreteriaCli implements CliView {
             printer.printError("Iscrizione dell'allievo fallita: " + e.getMessage());
         }
 
+        reader.waitForEnter();
     }
 
     private void reportLezioniSvolte() {
-        LocalDate date = reader.readDate("Data (yyyy-MM): ", "yyyy-MM");
+        YearMonth date = reader.readYearMonth("Data (yyyy-MM): ", "yyyy-MM");
         int month = date.getMonthValue();
         int year = date.getYear();
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
         try {
             List<LezioneDto> lezioni = controller.reportLezioniSvolte(month, year);
 
-            String[] headers = {"Codice", "Data", "Ora inizio", "Ora fine", "Insegnante", "Corso"};
-            String[][] data = lezioni.stream()
-                    .map(l -> itemLezione(l, dateFormat, timeFormat, true))
-                    .toArray(String[][]::new);
-
-            if (data.length == 0) {
+            if (lezioni.isEmpty()) {
                 printer.printInfo("Nessuna lezione trovata per il mese indicato.");
+
             } else {
+                String[] headers = {"Codice", "Data", "Ora inizio", "Ora fine", "Insegnante", "Corso"};
+                String[][] data = lezioni.stream()
+                        .map(l -> itemLezione(l, true))
+                        .toArray(String[][]::new);
+
                 printer.printTable(headers, data);
             }
 
@@ -186,21 +195,26 @@ public class SegreteriaCli implements CliView {
     }
 
     private void listaCorsi() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
         try {
             List<CorsoDto> corsi = controller.listaCorsi();
 
-            String[] headers = {"Nome livello", "Codice", "Data di attivazione", "Num. allievi", "Libro di testo", "Esame obbligatorio"};
-            String[][] data = corsi.stream()
-                    .map(c -> new String[]{
-                            c.nomeLivello(),
-                            String.valueOf(c.codice()),
-                            dateFormat.format(c.dataAttivazione()),
-                            String.valueOf(c.numAllievi()),
-                            c.libro(),
-                            c.esameObbligatorio() ? "Sì" : "No"
-                    }).toArray(String[][]::new);
+            if(corsi.isEmpty()) {
+                printer.printInfo("Nessun corso attualmente attivo.");
+
+            } else {
+                String[] headers = {"Nome livello", "Codice", "Data di attivazione", "Num. allievi", "Libro di testo", "Esame obbligatorio"};
+                String[][] data = corsi.stream()
+                        .map(c -> new String[]{
+                                c.nomeLivello(),
+                                String.valueOf(c.codice()),
+                                c.dataAttivazione().toString(),
+                                String.valueOf(c.numAllievi()),
+                                c.libro(),
+                                c.esameObbligatorio() ? "Sì" : "No"
+                        }).toArray(String[][]::new);
+
+                printer.printTable(headers, data);
+            }
 
         } catch (RequestException e) {
             printer.printError("Errore durante il recupero della lista dei corsi: " + e.getMessage());
@@ -217,30 +231,25 @@ public class SegreteriaCli implements CliView {
             SchedaAllievoDto schedaAllievo = controller.consultaSchedaAllievo(idAllievo);
             AllievoDto a = schedaAllievo.allievo();
 
-            printer.printList("Scheda allievo: " + a.nome() + " " + a.cognome(),
-                    new String[]{
-                            "ID Allievo : " + a.id(),
-                            "Telefono   : " + (a.telefono() != null ? a.telefono() : "N/D"),
-                            "Email      : " + (a.email() != null ? a.email() : "N/D"),
-                            "Corso      : " + a.nomeLivelloCorso() + " (" + a.codiceCorso() + ")",
-                            "Iscritto il: " + new SimpleDateFormat("dd/MM/yyyy").format(a.dataIscrizione())
-                    }
-            );
-
-
+            printer.printTitle("Scheda allievo: " + a.nome() + " " + a.cognome());
+            String[][] dataAllievo = {
+                    {"ID Allievo", String.valueOf(a.id())},
+                    {"Telefono", (a.telefono() != null ? a.telefono() : "N/D")},
+                    {"Email", (a.email() != null ? a.email() : "N/D")},
+                    {"Corso", a.nomeLivelloCorso() + " " + a.codiceCorso()},
+                    {"Iscritto il", a.dataIscrizione().toString()}
+            };
+            printer.printTable(new String[]{"Campo", "Valore"}, dataAllievo);
 
             printer.printTitle("Assenze registrate (" + schedaAllievo.assenze().size() + ")");
-
             if (schedaAllievo.assenze().isEmpty()) {
                 printer.printInfo("Questo allievo non ha assenze registrate.");
-            } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
+            } else {
                 String[] headers = {"Codice Lez.", "Data", "Ora inizio", "Ora fine", "Corso"};
 
                 String[][] data = schedaAllievo.assenze().stream()
-                        .map(l -> itemLezione(l, dateFormat, timeFormat, false))
+                        .map(l -> itemLezione(l, false))
                         .toArray(String[][]::new);
 
                 printer.printTable(headers, data);
@@ -253,18 +262,18 @@ public class SegreteriaCli implements CliView {
         reader.waitForEnter();
     }
 
-    private String[] itemLezione(LezioneDto l, SimpleDateFormat dateFormat, SimpleDateFormat timeFormat, boolean printInsegnante) {
+    private String[] itemLezione(LezioneDto l, boolean printInsegnante) {
 
-        String corso = l.nomeLivelloCorso() + l.codiceCorso();
+        String corso = l.nomeLivelloCorso() + " " + l.codiceCorso();
 
         if (printInsegnante) {
             String insegnante = l.insegnante() != null ? "(" + l.insegnante().id() + ")" + l.insegnante().nome() + " " + l.insegnante().cognome() : "N/A";
 
             return new String[]{
                     String.valueOf(l.codice()),
-                    dateFormat.format(l.data()),
-                    timeFormat.format(l.oraInizio()),
-                    timeFormat.format(l.oraFine()),
+                    l.data().toString(),
+                    l.oraInizio().toString(),
+                    l.oraFine().toString(),
                     insegnante,
                     corso
             };
@@ -272,9 +281,9 @@ public class SegreteriaCli implements CliView {
         } else {
             return new String[]{
                     String.valueOf(l.codice()),
-                    dateFormat.format(l.data()),
-                    timeFormat.format(l.oraInizio()),
-                    timeFormat.format(l.oraFine()),
+                    l.data().toString(),
+                    l.oraInizio().toString(),
+                    l.oraFine().toString(),
                     corso
             };
         }
