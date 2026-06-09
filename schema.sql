@@ -290,7 +290,7 @@ BEGIN
 
     set transaction isolation level read committed;
     start transaction read only;
-        select `Lezione`.`Data`, `Lezione`.`OraInizio`, `Lezione`.`OraFine`, `Lezione`.`NomeLivelloCorso`, `Lezione`.`CodiceCorso`
+        select `Lezione`.`Codice`, `Lezione`.`Data`, `Lezione`.`OraInizio`, `Lezione`.`OraFine`, `Lezione`.`NomeLivelloCorso`, `Lezione`.`CodiceCorso`
         from `language_school`.`Lezione`
         where `Lezione`.`IdInsegnante` = var_id_insegnante
             and `Lezione`.`Data` >= var_data

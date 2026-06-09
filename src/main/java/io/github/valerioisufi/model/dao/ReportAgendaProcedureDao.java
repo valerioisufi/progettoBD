@@ -28,7 +28,7 @@ public class ReportAgendaProcedureDao {
 
             while (rs.next()) {
                 Lezione lezione = new Lezione(
-                        -1, // codice non ritornato dalla select (solo se aggiunto nel DB)
+                        rs.getInt("Codice"),
                         rs.getDate("Data").toLocalDate(),
                         rs.getTime("OraInizio").toLocalTime(),
                         rs.getTime("OraFine").toLocalTime(),

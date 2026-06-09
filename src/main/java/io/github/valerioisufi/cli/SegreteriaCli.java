@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SegreteriaCli implements CliView {
-    CliEngine engine;
-    OutputPrinter printer;
-    InputReader reader;
+    private CliEngine engine;
+    private OutputPrinter printer;
+    private InputReader reader;
 
     SegreteriaController controller;
 
