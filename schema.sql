@@ -303,14 +303,27 @@ END$$
 
 DROP PROCEDURE IF EXISTS `language_school`.`elenco_iscritti_corso` $$
 CREATE PROCEDURE `language_school`.`elenco_iscritti_corso`(
+    in var_id_insegnante INT,
     in var_nomeLivelloCorso VARCHAR(45),
     in var_codiceCorso INT)
 BEGIN
+    declare var_authorized INT;
+
     declare exit handler for SQLEXCEPTION
     begin
         rollback;
         resignal;
     end;
+
+    select count(*) into var_authorized
+    from `language_school`.`Lezione`
+    where `Lezione`.`NomeLivelloCorso` = var_nomeLivelloCorso
+        and `Lezione`.`CodiceCorso` = var_codiceCorso
+        and `Lezione`.`IdInsegnante` = var_id_insegnante;
+
+    if var_authorized = 0 then
+        signal sqlstate '45000' set message_text = 'Insegnante non autorizzato ad accedere alla lista degli iscritti per questo corso';
+    end if;
 
     set transaction isolation level read committed ;
     start transaction read only;
@@ -324,14 +337,26 @@ END$$
 
 DROP PROCEDURE IF EXISTS `language_school`.`registra_assenza` $$
 CREATE PROCEDURE `language_school`.`registra_assenza`(
+    in var_id_insegnante INT,
     in var_id_allievo INT,
     in var_codice_lezione INT)
 BEGIN
+    declare var_authorized INT;
+
     declare exit handler for SQLEXCEPTION
     begin
         rollback;
         resignal;
     end;
+
+    select count(*) into var_authorized
+    from `language_school`.Lezione
+    where Lezione.CodiceCorso = var_codice_lezione
+        and Lezione.IdInsegnante = var_id_insegnante;
+
+    if var_authorized = 0 then
+        signal sqlstate '45000' set message_text = 'Insegnante non autorizzato a registrare un''assenza per questa lezione';
+    end if;
 
     set transaction isolation level repeatable read;
     start transaction;

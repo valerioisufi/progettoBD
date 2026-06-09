@@ -13,15 +13,16 @@ import java.util.List;
 
 public class ElencoIscrittiCorsoProcedureDao {
 
-    public List<Allievo> elencoIscrittiCorso(Corso corso) throws DaoException {
+    public List<Allievo> elencoIscrittiCorso(int idInsegnante, Corso corso) throws DaoException {
         List<Allievo> iscritti = new ArrayList<>();
 
         try {
             Connection conn = DbConnection.getInstance().getConnection();
-            CallableStatement cs = conn.prepareCall("{call elenco_iscritti_corso(?, ?)}");
+            CallableStatement cs = conn.prepareCall("{call elenco_iscritti_corso(?, ?, ?)}");
 
-            cs.setString(1, corso.getNomeLivello());
-            cs.setInt(2, corso.getCodice());
+            cs.setInt(1, idInsegnante);
+            cs.setString(2, corso.getNomeLivello());
+            cs.setInt(3, corso.getCodice());
 
             ResultSet rs = cs.executeQuery();
 

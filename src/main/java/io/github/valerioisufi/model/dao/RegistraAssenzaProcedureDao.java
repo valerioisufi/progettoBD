@@ -9,13 +9,14 @@ import java.sql.SQLException;
 
 public class RegistraAssenzaProcedureDao {
 
-    public void registraAssenza(Assenza assenza) throws DaoException {
+    public void registraAssenza(int idInsegnante, Assenza assenza) throws DaoException {
         try {
             Connection conn = DbConnection.getInstance().getConnection();
-            CallableStatement cs = conn.prepareCall("{call registra_assenza(?, ?)}");
+            CallableStatement cs = conn.prepareCall("{call registra_assenza(?, ?, ?)}");
 
-            cs.setInt(1, assenza.getIdAllievo());
-            cs.setInt(2, assenza.getCodiceLezione());
+            cs.setInt(1, idInsegnante);
+            cs.setInt(2, assenza.getIdAllievo());
+            cs.setInt(3, assenza.getCodiceLezione());
 
             cs.execute();
 

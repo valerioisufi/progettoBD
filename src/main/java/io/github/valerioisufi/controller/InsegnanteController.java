@@ -26,12 +26,9 @@ public class InsegnanteController {
 
     public List<LezioneDto> reportAgendaSettimanale(LocalDate dataInizio) throws RequestException {
         ReportAgendaProcedureDao dao = new ReportAgendaProcedureDao();
-        
-        int idInsegnante = sessionManager.getIdInsegnanteCorrente()
-                .orElseThrow(() -> new RequestException("Impossibile recuperare l'ID insegnante dalla sessione."));
-                
+
         try {
-            List<Lezione> agenda = dao.reportAgendaSettimanale(idInsegnante, dataInizio);
+            List<Lezione> agenda = dao.reportAgendaSettimanale(getIdInsegnanteCorrente(), dataInizio);
             
             return agenda.stream()
                     .map(l -> new LezioneDto(
@@ -50,7 +47,7 @@ public class InsegnanteController {
         ElencoIscrittiCorsoProcedureDao dao = new ElencoIscrittiCorsoProcedureDao();
         
         try {
-            List<Allievo> iscritti = dao.elencoIscrittiCorso(corso);
+            List<Allievo> iscritti = dao.elencoIscrittiCorso(getIdInsegnanteCorrente(), corso);
             
             return iscritti.stream()
                     .map(a -> new AllievoDto(
@@ -69,9 +66,15 @@ public class InsegnanteController {
         RegistraAssenzaProcedureDao dao = new RegistraAssenzaProcedureDao();
         
         try {
-            dao.registraAssenza(assenza);
+            dao.registraAssenza(getIdInsegnanteCorrente(), assenza);
         } catch (DaoException e) {
             throw new RequestException(e.getMessage());
         }
     }
+
+    private int getIdInsegnanteCorrente() throws RequestException {
+        return sessionManager.getIdInsegnanteCorrente()
+                .orElseThrow(() -> new RequestException("Impossibile recuperare l'ID insegnante dalla sessione."));
+    }
+
 }

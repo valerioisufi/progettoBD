@@ -3,13 +3,9 @@ package io.github.valerioisufi.model.dao;
 import io.github.valerioisufi.exception.DaoException;
 import io.github.valerioisufi.model.domain.Lezione;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 public class ReportAgendaProcedureDao {
@@ -22,7 +18,7 @@ public class ReportAgendaProcedureDao {
             CallableStatement cs = conn.prepareCall("{call report_agenda_settimanale(?, ?)}");
 
             cs.setInt(1, idInsegnante);
-            cs.setObject(2, data);
+            cs.setDate(2, Date.valueOf(data));
 
             ResultSet rs = cs.executeQuery();
 
