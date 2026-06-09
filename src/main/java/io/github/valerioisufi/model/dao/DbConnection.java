@@ -42,7 +42,7 @@ public class DbConnection {
         return connection;
     }
 
-    public Connection changeUser(String user) {
+    public void changeUser(String user) {
         try {
             connection.close();
 
@@ -56,8 +56,6 @@ public class DbConnection {
             logger.error("Errore durante il tentativo di stabilire la nuova connessione", ex);
             System.exit(-1);
         }
-
-        return connection;
     }
 
 }

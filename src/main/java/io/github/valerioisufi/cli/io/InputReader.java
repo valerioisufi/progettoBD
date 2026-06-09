@@ -1,5 +1,11 @@
 package io.github.valerioisufi.cli.io;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.UnaryOperator;
@@ -82,6 +88,32 @@ public class InputReader {
             } catch (NumberFormatException e) {
                 printer.printError("Input non valido. Inserisci un numero decimale valido.");
             }
+        }
+    }
+
+    public LocalDate readDate(String prompt, String pattern) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+
+        try {
+            return LocalDate.parse(input, DateTimeFormatter.ofPattern(pattern));
+
+        } catch (DateTimeParseException e) {
+            System.out.println("Formato non valido. Please use " + pattern + ".\n");
+            return readDate(prompt, pattern);
+        }
+
+    }
+
+    public LocalTime readTime(String prompt, String pattern) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+
+        try {
+            return LocalTime.parse(input, DateTimeFormatter.ofPattern(pattern));
+        } catch (DateTimeParseException e) {
+            System.out.println("Formato non valido. Please use " + pattern + ".\n");
+            return readTime(prompt, pattern);
         }
     }
 

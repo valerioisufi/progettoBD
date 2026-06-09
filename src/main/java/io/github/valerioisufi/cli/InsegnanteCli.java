@@ -1,4 +1,36 @@
 package io.github.valerioisufi.cli;
 
-public class InsegnanteCli {
+import io.github.valerioisufi.cli.io.InputReader;
+import io.github.valerioisufi.cli.io.OutputPrinter;
+
+import java.util.List;
+
+public class InsegnanteCli implements CliView {
+    CliEngine engine;
+    OutputPrinter printer;
+    InputReader reader;
+
+    @Override
+    public CliView execute(CliEngine engine) {
+        this.engine = engine;
+        printer = engine.getPrinter();
+        reader = engine.getInput();
+
+        printer.printHeader("DASHBOARD Insegnante");
+        printer.printMenu(null, List.of("Accedi", "Esci"));
+
+        int scelta = reader.readInt("Scegli un'opzione: ", 1, 2);
+
+        if (scelta == 1) {
+        } else if (scelta == 2) {
+            return null; // chiudi il programma
+        }
+
+        return this;
+    }
+
+    @Override
+    public void stop() {
+
+    }
 }

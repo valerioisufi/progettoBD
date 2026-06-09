@@ -1,6 +1,6 @@
 package io.github.valerioisufi.exception;
 
-public class DaoException extends ApplicationException {
+public class DaoException extends Exception {
 
     public DaoException(String message) {
         super(message);

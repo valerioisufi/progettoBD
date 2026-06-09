@@ -55,7 +55,7 @@ CREATE TABLE `language_school`.`Lezione` (
     PRIMARY KEY (`Codice`),
     INDEX `fk_Lezione_Insegnante1_idx` (`IdInsegnante` ASC),
     INDEX `fk_Lezione_Corso1_idx` (`NomeLivelloCorso` ASC, `CodiceCorso` ASC),
-    INDEX `idx_insegnante_corso` USING BTREE (`IdInsegnante`, `Data`),
+    INDEX `idx_insegnante_data` USING BTREE (`IdInsegnante`, `Data`),
     CONSTRAINT `fk_Lezione_Insegnante1`
         FOREIGN KEY (`IdInsegnante`)
         REFERENCES `language_school`.`Insegnante` (`Id`)
@@ -279,7 +279,8 @@ END$$
 
 DROP PROCEDURE IF EXISTS `language_school`.`report_agenda_settimanale` $$
 CREATE PROCEDURE `language_school`.`report_agenda_settimanale`(
-    in var_id_insegnante INT)
+    in var_id_insegnante INT,
+    in var_data DATE)
 BEGIN
     declare exit handler for SQLEXCEPTION
     begin
@@ -292,8 +293,8 @@ BEGIN
         select `Lezione`.`Data`, `Lezione`.`OraInizio`, `Lezione`.`OraFine`, `Lezione`.`NomeLivelloCorso`, `Lezione`.`CodiceCorso`
         from `language_school`.`Lezione`
         where `Lezione`.`IdInsegnante` = var_id_insegnante
-            and `Lezione`.`Data` >= CURRENT_DATE()
-            and `Lezione`.`Data` <= DATE_ADD(CURRENT_DATE(), INTERVAL 7 DAY)
+            and `Lezione`.`Data` >= var_data
+            and `Lezione`.`Data` <= DATE_ADD(var_data, INTERVAL 7 DAY)
         order by
             `Lezione`.`Data`,
             `Lezione`.`OraInizio`;
