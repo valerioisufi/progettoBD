@@ -54,8 +54,8 @@ public class LoginCli implements CliView {
             }
 
             return switch (role.get()) {
-                case Role.SEGRETERIA -> new SegreteriaCli();
-                case Role.INSEGNANTE -> new InsegnanteCli();
+                case SEGRETERIA -> new SegreteriaCli();
+                case INSEGNANTE -> new InsegnanteCli();
             };
 
         } catch (RequestException e) {
