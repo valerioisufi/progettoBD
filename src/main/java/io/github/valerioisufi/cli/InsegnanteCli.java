@@ -27,16 +27,16 @@ public class InsegnanteCli implements CliView {
         controller = engine.getControllerFactory().getInsegnanteController();
 
         printer.printHeader("DASHBOARD Insegnante");
-        printer.printMenu(null, List.of("Report agenda settimanale", "Elenco iscritti corso", "Registra assenza", "Logout"));
+        printer.printMenu(null, List.of("Appello", "Report agenda settimanale", "Elenco iscritti corso", "Logout"));
 
         int scelta = reader.readInt("Scegli un'opzione: ", 1, 4);
 
         if (scelta == 1) {
-            reportAgenda();
+            appello();
         } else if (scelta == 2) {
-            elencoIscrittiCorso();
+            reportAgenda();
         } else if (scelta == 3) {
-            registraAssenza();
+            elencoIscrittiCorso();
         } else if (scelta == 4) {
             engine.getControllerFactory().getSessionManager().logout();
             return new LoginCli();
@@ -47,6 +47,64 @@ public class InsegnanteCli implements CliView {
 
     @Override
     public void stop() {}
+
+    private void appello() {
+        try {
+            List<LezioneDto> lezioni = controller.reportAgendaSettimanale(LocalDate.now());
+
+            if (lezioni.isEmpty()) {
+                printer.printInfo("Non ci sono lezioni in agenda questa settimana.");
+                return;
+            }
+
+            List<String> data = lezioni.stream()
+                    .map(l ->
+                            l.data() + " " + l.oraInizio() + "-" + l.oraFine() + l.nomeLivelloCorso() + " " + l.codiceCorso()
+                    ).toList();
+
+            printer.printMenu("Lezioni programmate", data);
+
+            int sceltaLezione = reader.readInt("Scegli la lezione per la quale vuoi fare l'appello: ", 1, lezioni.size());
+
+            LezioneDto lezione = lezioni.get(sceltaLezione - 1);
+
+            List<AllievoDto> iscritti = controller.elencoIscrittiCorso(lezione.nomeLivelloCorso(), lezione.codiceCorso());
+            if (iscritti.isEmpty()) {
+                printer.printInfo("Non ci sono iscritti per questa lezione.");
+                return;
+            }
+
+            List<String> iscrittiData = iscritti.stream()
+                    .map(a ->
+                            a.nome() + " " + a.cognome()
+                    ).toList();
+
+            while (true) {
+                printer.printMenu("Iscritti", iscrittiData);
+
+                int sceltaAllievo = reader.readInt("Di chi vuoi registrare l'assenza? (0 per terminare): ", 0, iscrittiData.size());
+                if (sceltaAllievo == 0) {
+                    break;
+                }
+
+                AllievoDto allievo = iscritti.get(sceltaAllievo - 1);
+
+                try {
+                    controller.registraAssenza(allievo.id(), lezione.codice());
+
+                    printer.printSuccess("Assenza registrata per " + allievo.nome() + " " + allievo.cognome());
+                    reader.waitForEnter();
+                } catch (RequestException e){
+                    printer.printError("Errore durante la registrazione dell'assenza: " + e.getMessage());
+                }
+
+
+            }
+
+        } catch (RequestException e){
+            printer.printError("Errore durante l'appello: " + e.getMessage());
+        }
+    }
 
     private void reportAgenda() {
         LocalDate dataInizio = reader.readDate("Data inizio settimana (yyyy-MM-dd): ", "yyyy-MM-dd");
@@ -101,16 +159,4 @@ public class InsegnanteCli implements CliView {
 
     }
 
-    private void registraAssenza() {
-        int idAllievo = reader.readInt("ID Allievo: ");
-        int codiceLezione = reader.readInt("Codice lezione: ");
-
-        try {
-            controller.registraAssenza(idAllievo, codiceLezione);
-            printer.printSuccess("Assenza registrata con successo");
-
-        } catch (RequestException e){
-            printer.printError("Errore durante la registrazione dell'assenza: " + e.getMessage());
-        }
-    }
 }
