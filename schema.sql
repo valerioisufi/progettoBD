@@ -190,7 +190,7 @@ BEGIN
         resignal;
     end;
 
-    set transaction isolation level repeatable read;
+    set transaction isolation level read committed;
     start transaction;
         insert into `language_school`.Allievo (`Nome`, `Cognome`, `Telefono`, `Email`, `NomeLivelloCorso`, `CodiceCorso`, `DataIscrizione`)
             values (var_nome, var_cognome, var_telefono, var_email, var_nomeLivelloCorso, var_codiceCorso, CURRENT_DATE());
@@ -202,12 +202,6 @@ CREATE PROCEDURE `language_school`.`report_lezioni_svolte`(
     in var_mese INT,
     in var_anno INT)
 BEGIN
-    declare exit handler for SQLEXCEPTION
-    begin
-        rollback;
-        resignal;
-    end;
-
     set transaction isolation level read committed;
     start transaction read only;
         select `Insegnante`.`Id` as `IdInsegnante`,
@@ -238,12 +232,6 @@ END$$
 DROP PROCEDURE IF EXISTS `language_school`.`lista_corsi` $$
 CREATE PROCEDURE `language_school`.`lista_corsi`()
 BEGIN
-    declare exit handler for SQLEXCEPTION
-    begin
-        rollback;
-        resignal;
-    end;
-
     set transaction isolation level read committed;
     start transaction read only;
 
@@ -259,13 +247,7 @@ DROP PROCEDURE IF EXISTS `language_school`.`consulta_scheda_allievo` $$
 CREATE PROCEDURE `language_school`.`consulta_scheda_allievo`(
     in var_idAllievo INT)
 BEGIN
-    declare exit handler for SQLEXCEPTION
-    begin
-        rollback;
-        resignal;
-    end;
-
-    set transaction isolation level read committed;
+    set transaction isolation level repeatable read;
     start transaction read only;
 
         select `Allievo`.`Id`, `Allievo`.`Nome`, `Allievo`.`Cognome`, `Allievo`.`Telefono`, `Allievo`.`Email`, `Allievo`.`DataIscrizione`, `Corso`.`NomeLivello`, `Corso`.`Codice`
@@ -286,12 +268,6 @@ CREATE PROCEDURE `language_school`.`report_agenda_settimanale`(
     in var_id_insegnante INT,
     in var_data DATE)
 BEGIN
-    declare exit handler for SQLEXCEPTION
-    begin
-        rollback;
-        resignal;
-    end;
-
     set transaction isolation level read committed;
     start transaction read only;
         select `Lezione`.`Codice`, `Lezione`.`Data`, `Lezione`.`OraInizio`, `Lezione`.`OraFine`, `Lezione`.`NomeLivelloCorso`, `Lezione`.`CodiceCorso`
@@ -312,12 +288,6 @@ CREATE PROCEDURE `language_school`.`elenco_iscritti_corso`(
     in var_codiceCorso INT)
 BEGIN
     declare var_authorized INT;
-
-    declare exit handler for SQLEXCEPTION
-    begin
-        rollback;
-        resignal;
-    end;
 
     select count(*) into var_authorized
     from `language_school`.`Lezione`
@@ -347,7 +317,6 @@ CREATE PROCEDURE `language_school`.`registra_assenza`(
     out var_gia_presente TINYINT)
 BEGIN
     declare var_authorized INT;
-    declare var_assenza_esiste INT;
 
     declare exit handler for SQLEXCEPTION
     begin
@@ -364,21 +333,19 @@ BEGIN
         signal sqlstate '45000' set message_text = 'Insegnante non autorizzato a registrare un''assenza per questa lezione';
     end if;
 
-    set transaction isolation level repeatable read;
+    set transaction isolation level read committed;
     start transaction;
-        select count(*) into var_assenza_esiste
-        from `language_school`.`Assenza`
-        where `IdAllievo` = var_id_allievo and `CodiceLezione` = var_codice_lezione;
+        -- con ignore evito l'errore di chiave duplicata nel caso in cui l'assenza fosse già stata registrata in precedenza
+        insert ignore into `language_school`.`Assenza` (`IdAllievo`, `CodiceLezione`)
+            values (var_id_allievo, var_codice_lezione);
 
-        if var_assenza_esiste > 0 then
-            -- l'assenza è già stata registrata
+        if ROW_COUNT() = 0 then
+            -- l'assenza era già stata registrata
             set var_gia_presente = 1;
         else
-            insert into `language_school`.`Assenza` (`IdAllievo`, `CodiceLezione`)
-                values (var_id_allievo, var_codice_lezione);
-
             set var_gia_presente = 0;
         end if;
+
     commit;
 END$$
 
