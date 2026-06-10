@@ -274,7 +274,7 @@ BEGIN
         from `language_school`.`Lezione`
         where `Lezione`.`IdInsegnante` = var_id_insegnante
             and `Lezione`.`Data` >= var_data
-            and `Lezione`.`Data` <= DATE_ADD(var_data, INTERVAL 7 DAY)
+            and `Lezione`.`Data` < DATE_ADD(var_data, INTERVAL 7 DAY)
         order by
             `Lezione`.`Data`,
             `Lezione`.`OraInizio`;
@@ -326,7 +326,7 @@ BEGIN
 
     select count(*) into var_authorized
     from `language_school`.Lezione
-    where Lezione.CodiceCorso = var_codice_lezione
+    where Lezione.Codice = var_codice_lezione
         and Lezione.IdInsegnante = var_id_insegnante;
 
     if var_authorized = 0 then
